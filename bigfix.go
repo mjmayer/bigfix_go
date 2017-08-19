@@ -2,12 +2,24 @@ package main
 
 import (
 	"crypto/tls"
+	"encoding/xml"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 )
+
+type Computer struct {
+	LastReport string `xml:"LastReportTime"`
+	ID         string `xml:"ID"`
+}
+
+type Computers struct {
+	Comp      string     `xml:"BESAPI"`
+	Computers []Computer `xml:"Computer"`
+}
 
 func main() {
 	//command line arguments input and parse
@@ -45,7 +57,7 @@ func bigfixlogin(user string, password string, bigfixurl string) *http.Client {
 	return client
 }
 
-func bigfixcomputers(bigfixurl string, client *http.Client, user string, password string) string {
+func bigfixcomputers(bigfixurl string, client *http.Client, user string, password string) bool {
 	req, err := http.NewRequest("GET", bigfixurl+"/api/computers", nil)
 	req.SetBasicAuth(user, password)
 	resp, err := client.Do(req)
@@ -55,5 +67,13 @@ func bigfixcomputers(bigfixurl string, client *http.Client, user string, passwor
 	defer resp.Body.Close()
 	bodyText, err := ioutil.ReadAll(resp.Body)
 	s := string(bodyText)
-	return s
+	f := []byte(s)
+	var comps Computers
+	xml := xml.Unmarshal(f, &comps)
+	if xml != nil {
+		log.Fatal(err)
+	}
+	//s := string(bodyText)
+	fmt.Println(comps)
+	return (true)
 }
