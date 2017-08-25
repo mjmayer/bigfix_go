@@ -1,9 +1,8 @@
-package main
+package bigfix
 
 import (
 	"crypto/tls"
 	"encoding/xml"
-	"flag"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -22,21 +21,9 @@ type Computers struct {
 	Computers []Computer `xml:"Computer"`
 }
 
-func main() {
-	//command line arguments input and parse
-	var (
-		bigfixurl = flag.String("bigfixurl", "https://bigfix.ucdavis.edu:52311", "URL for BigFix HTTP Service")
-		user      = flag.String("user", "", "BigFix username")
-		password  = flag.String("password", "", "BigFixPassword")
-	)
-	flag.Parse()
-	var session = bigfixlogin(*user, *password, *bigfixurl)
-	//println(len(bigfixcomputers(*bigfixurl, session, *user, *password).Computers))
-	bigfixquery(*bigfixurl, session, *user, *password, "names of bes computers")
-}
 
 //Sets up http session for interaction with bigfix.
-func bigfixlogin(user string, password string, bigfixurl string) *http.Client {
+func Bigfixlogin(user string, password string, bigfixurl string) *http.Client {
 	//allows for invalid certs
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -60,7 +47,7 @@ func bigfixlogin(user string, password string, bigfixurl string) *http.Client {
 }
 
 //Returns Computer structure containing computer with lastreporttime, and ID
-func bigfixcomputers(bigfixurl string, client *http.Client, user string, password string) Computers {
+func Bigfixcomputers(bigfixurl string, client *http.Client, user string, password string) Computers {
 	req, err := http.NewRequest("GET", bigfixurl+"/api/computers", nil)
 	req.SetBasicAuth(user, password)
 	resp, err := client.Do(req)
@@ -100,7 +87,7 @@ type BESQuery struct {
 }
 
 //Runs relevance query against bigfix server
-func bigfixquery(bigfixurl string, client *http.Client, user string, password string, relevance string) Query {
+func Bigfixquery(bigfixurl string, client *http.Client, user string, password string, relevance string) Query {
 	req, err := http.NewRequest("GET", bigfixurl+"/api/query", nil)
 	req.SetBasicAuth(user, password)
 	q := req.URL.Query()
