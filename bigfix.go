@@ -42,7 +42,9 @@ func Bigfixlogin(user string, password string, bigfixurl string) *http.Client {
 	defer resp.Body.Close()
 	bodyText, err := ioutil.ReadAll(resp.Body)
 	s := string(bodyText)
-	println(s)
+	if s != "ok" {
+		log.Fatal(s)
+	}
 	return client
 }
 
