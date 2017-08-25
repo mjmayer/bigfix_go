@@ -68,6 +68,11 @@ func Bigfixcomputers(bigfixurl string, client *http.Client, user string, passwor
 	return comps
 }
 
+//an Tuple houses Answers from bigfix query where tuples are returned
+type Tuple struct {
+	Result []string `xml:"Answer"`
+}
+
 //an Eval represents the time and plurality from a bigfix query
 type Eval struct {
 	Time        string `xml:"Time"`
@@ -79,7 +84,8 @@ type Query struct {
 	XMLName    xml.Name `xml:"Query"`
 	Resource   string   `xml:"Resource,attr"`
 	Result     []string `xml:"Result>Answer"`
-	Evaluation Eval     `xml:"Evalutation`
+	Tuples     []Tuple  `xml:"Result>Tuple"`
+	Evaluation Eval     `xml:"Evalutation"`
 }
 
 //An BESQuery represents the XML returned from bigfix
@@ -95,6 +101,9 @@ func Bigfixquery(bigfixurl string, client *http.Client, user string, password st
 	q := req.URL.Query()
 	q.Add("relevance", relevance)
 	req.URL.RawQuery = q.Encode()
+	if err != nil {
+		log.Fatal(err)
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
