@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"encoding/xml"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -80,31 +79,28 @@ func bigfixcomputers(bigfixurl string, client *http.Client, user string, passwor
 	return comps
 }
 
-type Result string
-type Answer string
-
+//an Eval represents the time and plurality from a bigfix query
 type Eval struct {
-	//XMLName     xml.Name `xml:"Evalutation"`
 	Time        string `xml:"Time"`
 	Pluralality string `xml:"Plurality"`
 }
 
+//An Query represent the query xml from bigfix
 type Query struct {
 	XMLName    xml.Name `xml:"Query"`
 	Resource   string   `xml:"Resource,attr"`
-	Answers    []Answer `xml:"Result>Answer"`
-	Evaluation []Eval   `xml:"Evalutation`
+	Result     []string `xml:"Result>Answer"`
+	Evaluation Eval     `xml:"Evalutation`
 }
 
-//An query represents the XML returned from bigfix
+//An BESQuery represents the XML returned from bigfix
 type BESQuery struct {
-	XMLName string `xml:"BESAPI"`
-	Query   Query  `xml:"Query"`
-	//Answers []Answer `xml:"Query>Result>Answer"`
+	XMLName    string `xml:"BESAPI"`
+	Query      Query  `xml:"Query"`
 }
 
 //Runs relevance query against bigfix server
-func bigfixquery(bigfixurl string, client *http.Client, user string, password string, relevance string) BESQuery {
+func bigfixquery(bigfixurl string, client *http.Client, user string, password string, relevance string) Query {
 	req, err := http.NewRequest("GET", bigfixurl+"/api/query", nil)
 	req.SetBasicAuth(user, password)
 	q := req.URL.Query()
@@ -117,13 +113,11 @@ func bigfixquery(bigfixurl string, client *http.Client, user string, password st
 	defer resp.Body.Close()
 	bodyText, err := ioutil.ReadAll(resp.Body)
 	s := string(bodyText)
-	//println(s)
 	f := []byte(s)
 	var answer BESQuery
 	xml := xml.Unmarshal(f, &answer)
 	if xml != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(answer)
-	return answer
+	return answer.Query
 }
